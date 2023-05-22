@@ -1,5 +1,6 @@
 package LibraryPack;
 
+import FileHandling.BlockedFile;
 
 public class Users {
     
@@ -57,6 +58,7 @@ public class Users {
     }
     public void setBlocked(boolean blocked,Users user) {
         Blocked = blocked;
+        BlockedFile.makeBlockOrUnBlock("Project\\src\\Data\\ReadersData.txt", user);
     }
 
     public static int getUserCount() {

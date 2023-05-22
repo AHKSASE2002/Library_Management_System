@@ -2,6 +2,7 @@ package LibraryPack;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import FileHandling.*;
 public abstract class Library {
     protected static ArrayList<Books> books = new ArrayList<>();
     protected static ArrayList<Users> users = new ArrayList<>();
@@ -55,18 +56,58 @@ public abstract class Library {
         return loggedUser;
     }
 
-    
+    public static void AddBook(Books book) {
+        Library.books.add(book);
+        WriteOutputToBookFile.writeToFile();
+    }
     public static void addReaders(Readers readers) {
 
         Library.users.add(readers);
+        WriteOutputToReaderFile.writeToFile();
     }
     public static void addLibrarians(Librarians librarians) {
         Library.users.add(librarians);
     }
+    public static void removeBook(Books book) {
+        Library.books.remove(book);
+        RemoveBooksFromFile.removeBookFromFile("Project\\src\\Data\\Books.txt", book.getTitle());
+    }
+
+    public static void removeUser(Users user) {
+        Library.users.remove(user);
+        if (user instanceof Readers) {
+            RemoveReadersFromFile.removereaderFromFile("Project\\src\\Data\\ReadersData.txt", user.getUsername());
+        }
+        else if (user instanceof Librarians) {
+            RemoveLibrariansFromFile.removeLibrarianFromFile("Project\\src\\Data\\LibrariansData.txt", user.getUsername());
+        }
+            
+    }
+        
+    public static List<Books> searchBooks(String search) {
+        return Library.books.stream()
+                .filter(book -> 
+                    book.getTitle().equalsIgnoreCase(search) ||
+                    book.getAuthor().equalsIgnoreCase(search) ||
+                    book.getGenre().equalsIgnoreCase(search) ||
+                    String.valueOf(book.getISBN()).equalsIgnoreCase(search)
+                )
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+   
+    
+
+    
+    
+    
+    
+
     public static void orderBook(Users user,Books book) {
         
         Order order = new Order(user, book);
         Library.orders.add(order);
+        WriteOutputToOrderFile.writeToFile();
     }
     public static void removeOrder(Users user, Books book) {
         Order ordertoremove = orders.stream()
@@ -74,7 +115,9 @@ public abstract class Library {
                 .findFirst()
                 .orElse(null);
         Library.orders.removeIf(order -> order.getUser().equals(user) && order.getBook().equals(book));
-        }
+        
+        RemoveOrdersFromFile.removeOrderFromFile("Project\\src\\Data\\Orders.txt", ordertoremove);
+    }
     public static List<Order> searchOrders (String search) {
         List<Users> users = searchMembers(search);
         for (Users user : users) {
