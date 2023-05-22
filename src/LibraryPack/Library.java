@@ -84,6 +84,18 @@ public abstract class Library {
             
     }
         
+    public static List<Users> searchMembers(String search) {
+        return Library.users.stream()
+                .filter(user -> 
+                    user.getFirstName().equalsIgnoreCase(search) ||
+                    user.getLastName().equalsIgnoreCase(search) ||
+                    user.getCellPhone().equalsIgnoreCase(search) ||
+                    user.getEmail().equalsIgnoreCase(search) ||
+                    user.getAddress().equalsIgnoreCase(search) ||
+                    (user.getFirstName() + " " + user.getLastName()).equalsIgnoreCase(search)
+                )
+                .collect(Collectors.toList());
+    }
     public static List<Books> searchBooks(String search) {
         return Library.books.stream()
                 .filter(book -> 
@@ -95,13 +107,52 @@ public abstract class Library {
                 .collect(java.util.stream.Collectors.toList());
     }
 
-   
-    
+    public static void rentBook(Users user,Books book) {
+        
+        
+        Loan loan = new Loan(user, book);
+        
+        Library.loans.add(loan);
+        WriteOutputToLoanFile.writeToFile();
+        
+    }
+    public static boolean isRentedBefore(Books book) {
+        for (Loan loan : Library.loans) {
+            if (loan.getBook().equals(book) && loan.getUser().equals(Library.loggedUser)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
+    public static String getRentedBy(Books book) {
+        String result = "";
+        for (Loan loan : Library.loans) {
+            if (loan.getBook().equals(book) && users.contains(loan.getUser())) {
+                result += loan.getUser().getFirstName() + " " + loan.getUser().getLastName() + "\n";
+            }
+        }
+        return result;
+    }
     
-    
-    
-    
+    public static String getLoanedBooks(Users user) {
+        String result = "";
+        for (Loan loan : Library.loans) {
+            if (loan.getUser().equals(user) && books.contains(loan.getBook())) {
+                result += loan.getBook().getTitle() + "\n";
+            }
+        }
+        return result;
+    }
+    public static void returnBook(Books book) {
+        Loan loantoremove = loans.stream()
+                .filter(l -> l.getBook().equals(book) && l.getUser().equals(Library.loggedUser))
+                .findFirst()
+                .orElse(null);
+        Library.loans.removeIf(loan -> loan.getBook().equals(book) && loan.getUser().equals(Library.loggedUser));
+        
+        RemoveLoansFromFile.removeloanFromFile("Project\\src\\Data\\Loans.txt",loantoremove);
+    }
 
     public static void orderBook(Users user,Books book) {
         
